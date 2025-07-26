@@ -14,6 +14,7 @@ interface FechaHoraStepProps {
     fecha: string
     hora: string
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateData: (data: any) => void
   doctorInfo: {
     doctorId: string
@@ -59,6 +60,7 @@ export default function FechaHoraStep({ data, updateData, doctorInfo }: FechaHor
     if (data.fecha && doctorInfo.doctorId) {
       loadDoctorAvailability()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.fecha, doctorInfo.doctorId])
 
   const loadDoctorAvailability = async () => {

@@ -8,7 +8,8 @@ export interface Doctor {
   horarioFin: string
   diasTrabajo: number[] // 1=Lunes, 2=Martes, etc. 0=Domingo
   duracionCita: number // en minutos
-  foto?: string
+  foto?: string,
+  doctorEmail?: string // opcional, si se quiere enviar correo al doctor
 }
 
 export const doctorsDatabase: Doctor[] = [
@@ -23,6 +24,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "16:00",
     diasTrabajo: [1, 2, 3, 4, 5], // Lunes a Viernes
     duracionCita: 60,
+    doctorEmail: "julioedgardos09@gmail.com"
   },
   {
     id: "doc002",
@@ -34,6 +36,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "17:00",
     diasTrabajo: [1, 2, 3, 4, 5], 
     duracionCita: 60,
+    doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Cardiología
@@ -47,6 +50,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "14:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 45,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
   {
     id: "doc004",
@@ -58,6 +62,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "18:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 45,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Dermatología
@@ -71,6 +76,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "15:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 30,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
   {
     id: "doc006",
@@ -82,6 +88,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "19:00",
     diasTrabajo: [1, 2, 3, 4, 5, 6],
     duracionCita: 30,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Gastroenterología
@@ -95,6 +102,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "14:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 40,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Ginecología
@@ -108,6 +116,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "16:00",
     diasTrabajo: [1, 2, 3, 4, 5, 6],
     duracionCita: 35,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
   {
     id: "doc009",
@@ -119,6 +128,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "18:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 35,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Neurología
@@ -132,6 +142,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "15:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 50,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Oftalmología
@@ -145,6 +156,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "16:00",
     diasTrabajo: [1, 2, 3, 4, 5, 6],
     duracionCita: 25,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
   {
     id: "doc012",
@@ -156,6 +168,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "18:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 25,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Ortopedia
@@ -169,6 +182,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "14:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 40,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
   {
     id: "doc014",
@@ -180,6 +194,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "19:00",
     diasTrabajo: [1, 2, 3, 4, 5, 6],
     duracionCita: 40,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Pediatría
@@ -193,6 +208,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "16:00",
     diasTrabajo: [1, 2, 3, 4, 5, 6],
     duracionCita: 30,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
   {
     id: "doc016",
@@ -204,6 +220,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "18:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 30,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Psiquiatría
@@ -217,6 +234,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "17:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 60,
+    doctorEmail: "julioedgardos09@gmail.com"
   },
 
   // Urología
@@ -230,6 +248,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "14:00",
     diasTrabajo: [1, 2, 3, 4, 5],
     duracionCita: 35,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
   {
     id: "doc019",
@@ -241,6 +260,7 @@ export const doctorsDatabase: Doctor[] = [
     horarioFin: "19:00",
     diasTrabajo: [1, 2, 3, 4, 5, 6],
     duracionCita: 35,
+     doctorEmail: "julioedgardos09@gmail.com"
   },
 ]
 

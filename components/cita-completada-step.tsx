@@ -2,10 +2,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Calendar, Phone, Mail, Home } from "lucide-react"
+import { CheckCircle, Calendar, Phone, Mail, Home, Printer } from "lucide-react"
 import Link from "next/link"
 
 export default function CitaCompletadaStep() {
+
+  const printPage = () => {
+    window.print()
+  }
+
   return (
     <div className="space-y-6 text-center">
       <div className="flex flex-col items-center space-y-4">
@@ -19,6 +24,10 @@ export default function CitaCompletadaStep() {
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="text-xl">Número de confirmación</CardTitle>
+          <Button onClick={printPage} variant="outline" className="flex items-center">
+            <Printer className="mr-2 h-4 w-4" />
+            Imprimir página
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="bg-gray-100 p-4 rounded-lg">

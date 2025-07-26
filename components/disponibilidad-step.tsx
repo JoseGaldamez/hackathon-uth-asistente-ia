@@ -13,6 +13,7 @@ interface DisponibilidadStepProps {
     especialidad: string
     doctorId?: string
     doctorNombre?: string
+    doctorEmail?: string
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateData: (data: any) => void
@@ -28,6 +29,7 @@ export default function DisponibilidadStep({ data, updateData, especialidadRecom
     if (especialidadRecomendada && !data.especialidad) {
       updateData({ especialidad: especialidadRecomendada })
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [especialidadRecomendada])
 
   // Cargar médicos cuando cambie la especialidad
@@ -43,6 +45,7 @@ export default function DisponibilidadStep({ data, updateData, especialidadRecom
     updateData({
       doctorId: doctor.id,
       doctorNombre: `${doctor.nombre} ${doctor.apellido}`,
+      doctorEmail: doctor.doctorEmail,
     })
   }
 

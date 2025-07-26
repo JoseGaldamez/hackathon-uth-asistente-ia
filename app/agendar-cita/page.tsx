@@ -13,6 +13,7 @@ import FechaHoraStep from "@/components/fecha-hora-step"
 import DatosPersonalesStep from "@/components/datos-personales-step"
 import ResumenStep from "@/components/resumen-step"
 import CitaCompletadaStep from "@/components/cita-completada-step"
+import { sendEmail } from "@/server/sendEmail"
 
 const steps = [
   { id: 1, title: "Síntomas", description: "Describe tus síntomas" },
@@ -37,6 +38,7 @@ export default function AgendarCitaPage() {
       especialidad: "",
       doctorId: "",
       doctorNombre: "",
+      doctorEmail: "",
     },
     fechaHora: {
       fecha: "",
@@ -65,9 +67,26 @@ export default function AgendarCitaPage() {
   }
 
   const nextStep = () => {
+    console.log("Siguiente paso");
+    
     if (currentStep < 6) {
       setCurrentStep(currentStep + 1)
     }
+
+    if (currentStep === 5) {
+      // enviar correos
+      console.log("Cita paciente:", formData.datosPersonales.email)
+      console.log("Cita doctor:", formData.disponibilidad.doctorEmail)
+
+      const result = sendEmail({
+        from: "Hospital San Rafael <josegaldamez1991@gmail.com>",
+        to: `${formData.datosPersonales.email}, ${formData.disponibilidad.doctorEmail}`,
+        subject: "Confirmación de Cita",
+        content: `Tu cita con el Dr. ${formData.disponibilidad.doctorNombre} ha sido agendada para el ${formData.fechaHora.fecha} a las ${formData.fechaHora.hora}.`
+      })
+      console.log("Resultado del envío de correo:", result)
+    }
+
   }
 
   const prevStep = () => {
@@ -182,7 +201,7 @@ export default function AgendarCitaPage() {
         {/* Steps */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-8">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <div key={step.id} className="flex flex-col items-center">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
