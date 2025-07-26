@@ -5,13 +5,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Mic, MicOff, Play, Pause, FileText } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Mic, MicOff, Play, Pause, FileText, Brain, Loader2 } from "lucide-react"
 
 interface SintomasStepProps {
   data: {
     tipo: string
     contenido: string
     audioBlob: Blob | null
+    especialidadRecomendada?: string
+    analisisCompleto?: boolean
+    textoTranscrito?: string
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateData: (data: any) => void
@@ -24,6 +28,14 @@ export default function SintomasStep({ data, updateData }: SintomasStepProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState<{
+    especialidad: string
+    confianza: number
+    razonamiento: string
+  } | null>(null)
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
 
   const startRecording = async () => {
     try {
@@ -91,6 +103,66 @@ export default function SintomasStep({ data, updateData }: SintomasStepProps) {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
+
+  const analyzeSymptoms = async () => {
+    setIsAnalyzing(true)
+    setAnalysisError(null)
+
+    try {
+      let symptomsText = ""
+
+      // Si es audio, primero convertir a texto
+      if (data.tipo === "audio" && data.audioBlob) {
+        const formData = new FormData()
+        formData.append("audio", data.audioBlob, "symptoms.wav")
+
+        const transcriptionResponse = await fetch("/api/transcribe-audio", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!transcriptionResponse.ok) {
+          throw new Error("Error al transcribir el audio")
+        }
+
+        const transcriptionData = await transcriptionResponse.json()
+        symptomsText = transcriptionData.text
+      } else {
+        symptomsText = data.contenido
+      }
+
+      console.log("Analizando síntomas:", symptomsText);
+      
+
+      // Analizar síntomas con OpenAI
+      const analysisResponse = await fetch("/api/analyze-syntoms", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ symptoms: symptomsText }),
+      })
+
+      if (!analysisResponse.ok) {
+        throw new Error("Error al analizar los síntomas")
+      }
+
+      const result = await analysisResponse.json()
+      setAnalysisResult(result)
+
+      // Actualizar los datos con la especialidad recomendada
+      updateData({
+        especialidadRecomendada: result.especialidad,
+        analisisCompleto: true,
+        textoTranscrito: data.tipo === "audio" ? symptomsText : undefined,
+      })
+    } catch (error) {
+      console.error("Error analyzing symptoms:", error)
+      setAnalysisError("Hubo un error al analizar los síntomas. Por favor, intenta de nuevo.")
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (
@@ -208,6 +280,84 @@ export default function SintomasStep({ data, updateData }: SintomasStepProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Botón de análisis */}
+      {data.tipo && (data.contenido || data.audioBlob) && !data.analisisCompleto && (
+        <Card className="mt-6">
+          <CardContent className="p-6 text-center">
+            <h3 className="text-lg font-semibold mb-4">Análisis de síntomas con IA</h3>
+            <p className="text-gray-600 mb-4">
+              Nuestro sistema de inteligencia artificial analizará tus síntomas para recomendarte la especialidad médica
+              más adecuada.
+            </p>
+            <Button onClick={analyzeSymptoms} disabled={isAnalyzing} className="bg-purple-600 hover:bg-purple-700">
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analizando síntomas...
+                </>
+              ) : (
+                <>
+                  <Brain className="mr-2 h-4 w-4" />
+                  Analizar síntomas con IA
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Resultados del análisis */}
+      {analysisResult && (
+        <Card className="mt-6 border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="flex items-center text-green-800">
+              <Brain className="mr-2 h-5 w-5" />
+              Análisis completado
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-green-900">Especialidad recomendada:</h4>
+                <p className="text-lg font-bold text-green-800">{analysisResult.especialidad}</p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-green-900">Nivel de confianza:</h4>
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-green-600 h-2 rounded-full"
+                      style={{ width: `${analysisResult.confianza}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-medium">{analysisResult.confianza}%</span>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-green-900">Razonamiento:</h4>
+                <p className="text-green-800">{analysisResult.razonamiento}</p>
+              </div>
+
+              {data.textoTranscrito && (
+                <div>
+                  <h4 className="font-semibold text-green-900">Transcripción del audio:</h4>
+                  <p className="text-sm text-green-700 bg-white p-3 rounded border">{data.textoTranscrito}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error del análisis */}
+      {analysisError && (
+        <Alert className="mt-6 border-red-200 bg-red-50">
+          <AlertDescription className="text-red-800">{analysisError}</AlertDescription>
+        </Alert>
+      )}
     </div>
   )
 }

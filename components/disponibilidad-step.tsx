@@ -1,175 +1,205 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Clock, User } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { User, Stethoscope, Clock, Calendar, Star } from "lucide-react"
+import { getDoctorsBySpecialty } from "@/lib/doctors-data"
+import type { Doctor } from "@/lib/doctors-data"
 
 interface DisponibilidadStepProps {
   data: {
-    fecha: string
-    hora: string
     especialidad: string
+    doctorId?: string
+    doctorNombre?: string
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateData: (data: any) => void
+  especialidadRecomendada?: string
 }
 
-const especialidades = [
-  "Medicina General",
-  "Cardiología",
-  "Dermatología",
-  "Gastroenterología",
-  "Ginecología",
-  "Neurología",
-  "Oftalmología",
-  "Ortopedia",
-  "Pediatría",
-  "Psiquiatría",
-  "Urología",
-]
+export default function DisponibilidadStep({ data, updateData, especialidadRecomendada }: DisponibilidadStepProps) {
+  const [doctors, setDoctors] = useState<Doctor[]>([])
+  const [selectedDoctor, setSelectedDoctor] = useState<string>(data.doctorId || "")
 
-const horasDisponibles = [
-  "08:00",
-  "08:30",
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-]
-
-export default function DisponibilidadStep({ data, updateData }: DisponibilidadStepProps) {
-  // Generar fechas disponibles (próximos 30 días, excluyendo domingos)
-  const getFechasDisponibles = () => {
-    const fechas = []
-    const hoy = new Date()
-
-    for (let i = 1; i <= 30; i++) {
-      const fecha = new Date(hoy)
-      fecha.setDate(hoy.getDate() + i)
-
-      // Excluir domingos (0 = domingo)
-      if (fecha.getDay() !== 0) {
-        fechas.push(fecha.toISOString().split("T")[0])
-      }
+  // Establecer especialidad recomendada por defecto
+  useEffect(() => {
+    if (especialidadRecomendada && !data.especialidad) {
+      updateData({ especialidad: especialidadRecomendada })
     }
+  }, [especialidadRecomendada])
 
-    return fechas
+  // Cargar médicos cuando cambie la especialidad
+  useEffect(() => {
+    if (data.especialidad) {
+      const specialtyDoctors = getDoctorsBySpecialty(data.especialidad)
+      setDoctors(specialtyDoctors)
+    }
+  }, [data.especialidad])
+
+  const handleDoctorSelect = (doctor: Doctor) => {
+    setSelectedDoctor(doctor.id)
+    updateData({
+      doctorId: doctor.id,
+      doctorNombre: `${doctor.nombre} ${doctor.apellido}`,
+    })
   }
 
-  const formatearFecha = (fecha: string) => {
-    const date = new Date(fecha + "T00:00:00")
-    return date.toLocaleDateString("es-ES", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
+  const getDiasTrabajoTexto = (diasTrabajo: number[]) => {
+    const dias = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+    return diasTrabajo.map((dia) => dias[dia]).join(", ")
+  }
+
+  const getExperienciaColor = (experiencia: number) => {
+    if (experiencia >= 20) return "text-green-600"
+    if (experiencia >= 15) return "text-blue-600"
+    if (experiencia >= 10) return "text-yellow-600"
+    return "text-gray-600"
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Selecciona fecha y hora</h2>
+        <h2 className="text-2xl font-bold mb-2">Selecciona tu médico especialista</h2>
         <p className="text-gray-600">
-          Elige la especialidad médica, fecha y hora que mejor se adapte a tu disponibilidad.
+          Elige el médico de {data.especialidad || especialidadRecomendada} que prefieras para tu consulta.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {/* Especialidad */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-lg">
-              <User className="mr-2 h-5 w-5" />
-              Especialidad
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="especialidad">Selecciona la especialidad</Label>
-              <Select value={data.especialidad} onValueChange={(value) => updateData({ especialidad: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Elige una especialidad" />
-                </SelectTrigger>
-                <SelectContent>
-                  {especialidades.map((esp) => (
-                    <SelectItem key={esp} value={esp}>
-                      {esp}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Especialidad seleccionada */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-3">
+            <Stethoscope className="h-6 w-6 text-blue-600" />
+            <div>
+              <h3 className="font-semibold text-blue-900">
+                Especialidad: {data.especialidad || especialidadRecomendada}
+              </h3>
+              <p className="text-sm text-blue-700">
+                {especialidadRecomendada && data.especialidad === especialidadRecomendada
+                  ? "Especialidad recomendada por nuestro análisis de IA"
+                  : "Especialidad seleccionada"}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Fecha */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-lg">
-              <Calendar className="mr-2 h-5 w-5" />
-              Fecha
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="fecha">Selecciona la fecha</Label>
-              <Select value={data.fecha} onValueChange={(value) => updateData({ fecha: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Elige una fecha" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getFechasDisponibles().map((fecha) => (
-                    <SelectItem key={fecha} value={fecha}>
-                      {formatearFecha(fecha)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Lista de médicos */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold flex items-center">
+          <User className="mr-2 h-5 w-5" />
+          Médicos Disponibles ({doctors.length})
+        </h3>
 
-        {/* Hora */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-lg">
-              <Clock className="mr-2 h-5 w-5" />
-              Hora
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="hora">Selecciona la hora</Label>
-              <Select value={data.hora} onValueChange={(value) => updateData({ hora: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Elige una hora" />
-                </SelectTrigger>
-                <SelectContent>
-                  {horasDisponibles.map((hora) => (
-                    <SelectItem key={hora} value={hora}>
-                      {hora}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        {doctors.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <p className="text-gray-500">No hay médicos disponibles para esta especialidad.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {doctors.map((doctor) => (
+              <Card
+                key={doctor.id}
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  selectedDoctor === doctor.id
+                    ? "ring-2 ring-blue-500 bg-blue-50 border-blue-200"
+                    : "hover:bg-gray-50 border-gray-200"
+                }`}
+                onClick={() => handleDoctorSelect(doctor)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                          {doctor.nombre.charAt(0)}
+                          {doctor.apellido.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-semibold text-gray-900">
+                            {doctor.nombre} {doctor.apellido}
+                          </h4>
+                          <p className="text-blue-600 font-medium">{doctor.especialidad}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-3 gap-4 mt-4">
+                        <div className="flex items-center space-x-2">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          <span className={`font-medium ${getExperienciaColor(doctor.experiencia)}`}>
+                            {doctor.experiencia} años de experiencia
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-600">
+                            {doctor.horarioInicio} - {doctor.horarioFin}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-600">{getDiasTrabajoTexto(doctor.diasTrabajo)}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Badge variant="outline" className="text-xs">
+                            Cita: {doctor.duracionCita} min
+                          </Badge>
+                          {doctor.experiencia >= 15 && (
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                              Especialista Senior
+                            </Badge>
+                          )}
+                        </div>
+
+                        <Button
+                          variant={selectedDoctor === doctor.id ? "default" : "outline"}
+                          size="sm"
+                          className={
+                            selectedDoctor === doctor.id
+                              ? "bg-blue-600 hover:bg-blue-700"
+                              : "hover:bg-blue-50 hover:border-blue-300"
+                          }
+                        >
+                          {selectedDoctor === doctor.id ? "Seleccionado" : "Seleccionar"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Información del médico seleccionado */}
+      {selectedDoctor && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div>
+                <h4 className="font-medium text-green-900">Médico seleccionado:</h4>
+                <p className="text-green-800">
+                  <strong>{data.doctorNombre}</strong> - {data.especialidad}
+                </p>
+                <p className="text-sm text-green-700 mt-1">
+                  En el siguiente paso podrás seleccionar la fecha y hora para tu cita.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Información adicional */}
       <Card className="bg-blue-50 border-blue-200">
@@ -179,10 +209,10 @@ export default function DisponibilidadStep({ data, updateData }: DisponibilidadS
             <div>
               <h4 className="font-medium text-blue-900">Información importante:</h4>
               <ul className="text-sm text-blue-800 mt-1 space-y-1">
-                <li>• Las citas están disponibles de lunes a sábado</li>
-                <li>• Llega 15 minutos antes de tu cita</li>
-                <li>• Trae tu documento de identidad y carnet de seguro médico</li>
-                <li>• Si necesitas cancelar, hazlo con al menos 24 horas de anticipación</li>
+                <li>• Todos nuestros médicos están certificados y colegiados</li>
+                <li>• Puedes cambiar de médico hasta 24 horas antes de tu cita</li>
+                <li>• Los horarios mostrados son los horarios generales de consulta</li>
+                <li>• En el siguiente paso verás la disponibilidad específica de fechas y horas</li>
               </ul>
             </div>
           </div>

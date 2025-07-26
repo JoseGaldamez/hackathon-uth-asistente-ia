@@ -9,30 +9,38 @@ import Link from "next/link"
 
 import SintomasStep from "@/components/sintomas-step"
 import DisponibilidadStep from "@/components/disponibilidad-step"
+import FechaHoraStep from "@/components/fecha-hora-step"
 import DatosPersonalesStep from "@/components/datos-personales-step"
 import ResumenStep from "@/components/resumen-step"
 import CitaCompletadaStep from "@/components/cita-completada-step"
 
 const steps = [
   { id: 1, title: "Síntomas", description: "Describe tus síntomas" },
-  { id: 2, title: "Disponibilidad", description: "Selecciona fecha y hora" },
-  { id: 3, title: "Datos Personales", description: "Información del paciente" },
-  { id: 4, title: "Resumen", description: "Confirma tu cita" },
-  { id: 5, title: "Completado", description: "Cita agendada" },
+  { id: 2, title: "Especialista", description: "Selecciona tu médico" },
+  { id: 3, title: "Fecha y Hora", description: "Agenda tu cita" },
+  { id: 4, title: "Datos Personales", description: "Información del paciente" },
+  { id: 5, title: "Resumen", description: "Confirma tu cita" },
+  { id: 6, title: "Completado", description: "Cita agendada" },
 ]
 
 export default function AgendarCitaPage() {
-  const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
     sintomas: {
       tipo: "", // "texto" o "audio"
       contenido: "",
       audioBlob: null as Blob | null,
+      especialidadRecomendada: "",
+      analisisCompleto: false,
+      textoTranscrito: "",
     },
     disponibilidad: {
+      especialidad: "",
+      doctorId: "",
+      doctorNombre: "",
+    },
+    fechaHora: {
       fecha: "",
       hora: "",
-      especialidad: "",
     },
     datosPersonales: {
       nombre: "",
@@ -44,6 +52,8 @@ export default function AgendarCitaPage() {
     },
   })
 
+  const [currentStep, setCurrentStep] = useState(1)
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateFormData = (section: string, data: any) => {
     setFormData((prev) => ({
@@ -53,7 +63,7 @@ export default function AgendarCitaPage() {
   }
 
   const nextStep = () => {
-    if (currentStep < 5) {
+    if (currentStep < 6) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -64,7 +74,7 @@ export default function AgendarCitaPage() {
     }
   }
 
-  const progress = (currentStep / 5) * 100
+  const progress = (currentStep / 6) * 100
 
   const renderStep = () => {
     switch (currentStep) {
@@ -75,18 +85,43 @@ export default function AgendarCitaPage() {
           <DisponibilidadStep
             data={formData.disponibilidad}
             updateData={(data) => updateFormData("disponibilidad", data)}
+            especialidadRecomendada={formData.sintomas.especialidadRecomendada}
           />
         )
       case 3:
+        return (
+          <FechaHoraStep
+            data={formData.fechaHora}
+            updateData={(data) => updateFormData("fechaHora", data)}
+            doctorInfo={{
+              doctorId: formData.disponibilidad.doctorId,
+              doctorNombre: formData.disponibilidad.doctorNombre,
+              especialidad: formData.disponibilidad.especialidad,
+            }}
+          />
+        )
+      case 4:
         return (
           <DatosPersonalesStep
             data={formData.datosPersonales}
             updateData={(data) => updateFormData("datosPersonales", data)}
           />
         )
-      case 4:
-        return <ResumenStep formData={formData} />
       case 5:
+        return (
+          <ResumenStep
+            formData={{
+              sintomas: formData.sintomas,
+              disponibilidad: {
+                ...formData.disponibilidad,
+                fecha: formData.fechaHora.fecha,
+                hora: formData.fechaHora.hora,
+              },
+              datosPersonales: formData.datosPersonales,
+            }}
+          />
+        )
+      case 6:
         return <CitaCompletadaStep />
       default:
         return null
@@ -96,10 +131,12 @@ export default function AgendarCitaPage() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.sintomas.tipo && (formData.sintomas.contenido || formData.sintomas.audioBlob)
+        return formData.sintomas.analisisCompleto && formData.sintomas.especialidadRecomendada
       case 2:
-        return formData.disponibilidad.fecha && formData.disponibilidad.hora && formData.disponibilidad.especialidad
+        return formData.disponibilidad.doctorId && formData.disponibilidad.especialidad
       case 3:
+        return formData.fechaHora.fecha && formData.fechaHora.hora
+      case 4:
         return (
           formData.datosPersonales.nombre &&
           formData.datosPersonales.apellido &&
@@ -107,7 +144,7 @@ export default function AgendarCitaPage() {
           formData.datosPersonales.email &&
           formData.datosPersonales.cedula
         )
-      case 4:
+      case 5:
         return true
       default:
         return false
@@ -131,7 +168,7 @@ export default function AgendarCitaPage() {
           <CardHeader>
             <div className="flex justify-between items-center mb-4">
               <CardTitle>
-                Paso {currentStep} de 5: {steps[currentStep - 1].title}
+                Paso {currentStep} de 6: {steps[currentStep - 1].title}
               </CardTitle>
               <span className="text-sm text-gray-500">{Math.round(progress)}% completado</span>
             </div>
@@ -163,14 +200,14 @@ export default function AgendarCitaPage() {
         </Card>
 
         {/* Navigation */}
-        {currentStep < 5 && (
+        {currentStep < 6 && (
           <div className="flex justify-between">
             <Button variant="outline" onClick={prevStep} disabled={currentStep === 1}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Anterior
             </Button>
             <Button onClick={nextStep} disabled={!canProceed()} className="bg-blue-600 hover:bg-blue-700">
-              {currentStep === 4 ? "Confirmar Cita" : "Siguiente"}
+              {currentStep === 5 ? "Confirmar Cita" : "Siguiente"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
