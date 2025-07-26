@@ -49,6 +49,8 @@ export default function AgendarCitaPage() {
       email: "",
       cedula: "",
       fechaNacimiento: "",
+      esNuevoPaciente: false,
+      pacienteEncontrado: false,
     },
   })
 
@@ -138,11 +140,12 @@ export default function AgendarCitaPage() {
         return formData.fechaHora.fecha && formData.fechaHora.hora
       case 4:
         return (
+          formData.datosPersonales.cedula &&
           formData.datosPersonales.nombre &&
           formData.datosPersonales.apellido &&
           formData.datosPersonales.telefono &&
           formData.datosPersonales.email &&
-          formData.datosPersonales.cedula
+          (formData.datosPersonales.pacienteEncontrado || formData.datosPersonales.esNuevoPaciente)
         )
       case 5:
         return true
